@@ -43,6 +43,8 @@ tej firmy nie została wykorzystana (sekcja 3.5).
 | Adres IP nadawcy | `45.147.46.178` |
 | Klasyfikacja Gmaila | Spam |
 
+![Wiadomość w kliencie pocztowym — nazwa wyświetlana nadawcy odpowiada nazwie odbiorcy, w treści widoczna niezamieniona encja HTML](screenshots/wiadomosc-w-gmailu.png)
+
 
 ---
 
@@ -126,6 +128,8 @@ Resolve-DnsName efianalytics.com -Type TXT
 | Serwer pocztowy `efianalytics.com` | `40.130.79.86` | zupełnie inny adres |
 | Rekord SPF `efianalytics.com` | `ip4:40.130.79.86 include:secureserver.net -all` | `216.244.76.116` **nie jest** autoryzowany |
 
+![Weryfikacja DNS: PTR, MX oraz rekord SPF domeny efianalytics.com](screenshots/weryfikacja-dns.png)
+
 Trzy niezależne sprawdzenia są zgodne: **nazwa `efianalytics.com` w HELO została sfałszowana.**
 Infrastruktura EFI Analytics nie została wykorzystana ani skompromitowana — atakujący korzysta
 z serwera w sieci WowRack i podczas powitania SMTP podał cudzą nazwę domeny. Serwer odbierający
@@ -184,6 +188,8 @@ Konsekwencja: **mechanizmy reputacyjne oceniają domenę, a ta należy do Google
 | Google Safe Browsing | brak klasyfikacji |
 | Status HTTP | 200 — strona aktywna w dniu analizy |
 
+![VirusTotal: 1 z 92 silników oznacza adres jako phishing](screenshots/virustotal-1-92.png)
+
 Trzy niezależne systemy reputacyjne nie zakwalifikowały tego adresu jako złośliwego.
 
 ### 5.3 Łańcuch przekierowań
@@ -208,6 +214,8 @@ strona docelowa — po HTTP, nie HTTPS
 | Strefa | `eu.org` — bezpłatne subdomeny |
 | Liczba skanów na urlscan.io | 1214 |
 
+![urlscan.io — łańcuch przekierowań i informacje o domenie drugiego etapu](screenshots/urlscan-podsumowanie.png)
+
 Domena w bezpłatnej strefie, zarejestrowana trzy miesiące temu, przeskanowana ponad tysiąc razy — infrastruktura jednorazowa, wykorzystywana w kampanii o dużej skali.
 
 ### 5.4 Przeznaczenie fragmentu URL — weryfikacja eksperymentalna
@@ -220,6 +228,8 @@ Wszystko po znaku `#` (fragment) **nie jest wysyłane do serwera** — pozostaje
 | 2 | **bez fragmentu** | `/t/?undefined=undefined&tz=Europe%2FWarsaw&lang=pl-PL` |
 
 W skanie bez fragmentu w parametrze pojawiła się wartość `undefined`. Oznacza to, że skrypt na stronie pośredniczącej odczytuje fragment adresu i przekazuje go dalej jako parametr — przy jego braku zmienna pozostaje niezdefiniowana. Fragment pełni więc funkcję **identyfikatora odbiorcy lub kampanii**, przenoszonego w sposób niewidoczny dla serwerów pośredniczących.
+
+![urlscan.io — transakcje HTTP; widoczny adres końcowy z parametrem undefined oraz odpowiedź 406](screenshots/urlscan-transakcje-http.png)
 
 Ma to bezpośrednie znaczenie operacyjne: **w logach serwera proxy fragment nie będzie widoczny**, więc identyfikacja konkretnych ofiar na tej podstawie jest niemożliwa.
 
