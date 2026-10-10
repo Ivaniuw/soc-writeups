@@ -17,6 +17,19 @@ analityka pierwszej linii.
 
 ---
 
+## Ćwiczenia laboratoryjne / Lab exercises
+
+Osobna sekcja: analizy wykonane na materiale **laboratoryjnym** (TryHackMe), trzymane oddzielnie
+od rzeczywistych incydentów powyżej. Pisane po angielsku, w formacie raportu z triażu.
+
+*Separate from the real-world analyses above: malware-triage reports done on lab material (TryHackMe), written in English.*
+
+| Data | Platforma | Temat | Czego dotyczy |
+|---|---|---|---|
+| 10.10.2026 | TryHackMe (Shadow Trace) | [Malware triage — windows-update.exe](labs/shadow-trace-tryhackme.md) | statyczna analiza PE, ekstrakcja IOC, dekodowanie Base64, mapowanie MITRE ATT&CK, bind shell + eksfiltracja |
+
+---
+
 ## Podejście
 
 - **Materiał rzeczywisty** — wiadomości z własnej skrzynki, nie przygotowane ćwiczenia.
