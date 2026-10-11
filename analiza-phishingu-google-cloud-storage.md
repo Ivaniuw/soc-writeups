@@ -101,7 +101,7 @@ Received: by 2002:a05:6f02:62a:b0:128:1e4d:31c1 with SMTP id 42csp17238589rce;
           Fri, 25 Sep 2026 00:08:20 -0700 (PDT)
 ```
 
-Znacznik czasu `00:08:19 -0700 (PDT)` odpowiada godzinie 09:08 czasu środkowoeuropejskiego,
+Znacznik czasu `00:08:19 -0700 (PDT)` odpowiada godzinie 09:08 czasu środkowoeuropejskiego letniego (CEST),
 co zgadza się z godziną widoczną w kliencie pocztowym.
 
 ### 3.5 Sfałszowana nazwa HELO — weryfikacja
