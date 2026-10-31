@@ -28,6 +28,7 @@ od rzeczywistych incydentów powyżej. Pisane po angielsku, w formacie raportu z
 |---|---|---|---|
 | 10.10.2026 | TryHackMe (Shadow Trace) | [Malware triage — windows-update.exe](labs/shadow-trace-tryhackme.md) | statyczna analiza PE, ekstrakcja IOC, dekodowanie Base64, mapowanie MITRE ATT&CK, bind shell + eksfiltracja |
 | 21.10.2026 | TryHackMe (ItsyBitsy) | [SIEM triage — C2 beacon investigation](labs/itsybitsy-tryhackme.md) | triage alertu IDS w Elastic/Kibana (KQL), analiza logów połączeń, LOLBin (bitsadmin), pastebin jako C2, mapowanie MITRE ATT&CK |
+| 31.10.2026 | TryHackMe (Tempest, **Capstone**) | [Full attack-chain DFIR — compromised workstation](labs/tempest-tryhackme.md) | pełny łańcuch ataku: Follina (CVE-2022-30190), Sysmon/EVTX (Timeline Explorer), deobfuskacja C2 (base64, tshark), chisel, PrintSpoofer, persystencja, MITRE ATT&CK |
 
 ---
 
