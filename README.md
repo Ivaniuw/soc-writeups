@@ -29,6 +29,9 @@ od rzeczywistych incydentów powyżej. Pisane po angielsku, w formacie raportu z
 | 10.10.2026 | TryHackMe (Shadow Trace) | [Malware triage — windows-update.exe](labs/shadow-trace-tryhackme.md) | statyczna analiza PE, ekstrakcja IOC, dekodowanie Base64, mapowanie MITRE ATT&CK, bind shell + eksfiltracja |
 | 21.10.2026 | TryHackMe (ItsyBitsy) | [SIEM triage — C2 beacon investigation](labs/itsybitsy-tryhackme.md) | triage alertu IDS w Elastic/Kibana (KQL), analiza logów połączeń, LOLBin (bitsadmin), pastebin jako C2, mapowanie MITRE ATT&CK |
 | 31.10.2026 | TryHackMe (Tempest, **Capstone**) | [Full attack-chain DFIR — compromised workstation](labs/tempest-tryhackme.md) | pełny łańcuch ataku: Follina (CVE-2022-30190), Sysmon/EVTX (Timeline Explorer), deobfuskacja C2 (base64, tshark), chisel, PrintSpoofer, persystencja, MITRE ATT&CK |
+| 01.11.2026 | TryHackMe (Boogeyman 1, **Capstone**) | [Phishing to DNS exfiltration — rebuilding a stolen password database](labs/boogeyman-1-tryhackme.md) | phishing z zaszyfrowanym ZIP, LNK → PowerShell C2, logi ScriptBlock (jq), eksfiltracja przez DNS, odtworzenie pliku KeePass z pcap (tshark, xxd) |
+| 01.11.2026 | TryHackMe (Boogeyman 2, **Capstone**) | [Memory forensics — malicious résumé to fileless persistence](labs/boogeyman-2-tryhackme.md) | analiza zrzutu pamięci w Volatility 3, makro VBA (olevba), wscript → C2, zadanie harmonogramu z payloadem w rejestrze |
+| 02.11.2026 | TryHackMe (Boogeyman 3, **Capstone**) | [SIEM investigation — CEO phishing to domain compromise](labs/boogeyman-3-tryhackme.md) | Elastic/KQL na wielu hostach: ISO + HTA, rundll32, obejście UAC, Mimikatz, pass-the-hash, WinRM, DCSync, ransomware |
 
 ---
 
@@ -55,7 +58,7 @@ od rzeczywistych incydentów powyżej. Pisane po angielsku, w formacie raportu z
 
 Ivan Tatur — przygotowuję się do pracy jako analityk SOC L1.
 
-- TryHackMe: [tatur38](https://tryhackme.com/p/tatur38) — SOC Level 1, SOC Simulator,
-  moduły Security Monitoring oraz Network Security and Traffic Analysis
+- TryHackMe: [tatur38](https://tryhackme.com/p/tatur38) — **SOC Level 1 ukończony (certyfikat, 11.2026)**,
+  SOC Simulator, moduły Security Monitoring oraz Network Security and Traffic Analysis
 - LinkedIn: [ivan-tatur](https://www.linkedin.com/in/ivan-tatur-1a50b0234)
 - Kontakt: tatur38@gmail.com
