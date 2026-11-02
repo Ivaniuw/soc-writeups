@@ -21,18 +21,21 @@ process.name: "mshta.exe"
 ```
 
 ```
-explorer.exe → "C:\Windows\SysWOW64\mshta.exe" "D:\ProjectFinancialSummary_Q3.pdf.hta"
+explorer.exe → "C:\Windows\SysWOW64\mshta.exe" "D:\ProjectFinancialSummary_Q3.pdf.hta"   (PID 6392)
 ```
 
 ISO containers are a known way to bypass Mark-of-the-Web: files inside a mounted image don't inherit the "downloaded from the internet" flag.
 
 ## 2. Execution and persistence on WKSTN-0051
 
-The HTA copied an implant from the image to the user's temp folder and ran it as a DLL:
+The HTA did two things with a hidden file on the same image, `D:\review.dat`:
 
 ```
-rundll32.exe C:\Users\EVAN~1.HUT\AppData\Local\Temp\review.dat,DllRegisterServer
+"C:\Windows\System32\xcopy.exe" /s /i /e /h D:\review.dat C:\Users\EVAN~1.HUT\AppData\Local\Temp\review.dat
+"C:\Windows\System32\rundll32.exe" D:\review.dat,DllRegisterServer
 ```
+
+It ran the implant straight from the ISO, and kept a copy in `%TEMP%`. The copy is the one the persistence points to, so it keeps working after the ISO is unmounted.
 
 There was **no `schtasks.exe`** in the logs, but a task still appeared. It had been created with PowerShell cmdlets (`process.command_line: *ScheduledTask*`):
 
@@ -47,28 +50,29 @@ Lesson: hunting for `schtasks.exe` alone misses cmdlet-created tasks. Also check
 
 ## 3. Command and control
 
-Sysmon network events (`event.code: "3"`) tied to the implant's process gave the C2 endpoint.
+Sysmon network events (`event.code: "3"`) tied to the implant's process gave the C2 endpoint: **`165.232.170.151:80`**. Plain HTTP on port 80 blends in with normal web traffic.
 
 ## 4. Privilege escalation: UAC bypass
 
-The compromised user was a local administrator, but tokens were still filtered by UAC. The attacker used an **auto-elevating Windows binary**: plant a command under a per-user registry key it reads, start it, and the command runs with high integrity and no prompt.
+The compromised user was a local administrator, but tokens were still filtered by UAC. The attacker used **`fodhelper.exe`**, an auto-elevating Windows binary. It reads a command from a per-user registry key (`HKCU\Software\Classes\ms-settings\shell\open\command`), so whoever writes to that key gets their command run with high integrity and no prompt.
 
 ## 5. Credential access and lateral movement
 
-1. **Mimikatz**, downloaded from its GitHub releases page, dumped credentials on `WKSTN-0051`.
-2. The new NTLM hash was used for **pass-the-hash** (`sekurlsa::pth`).
-3. With that identity the attacker enumerated file shares and read a file from a remote share. It contained **another plaintext credential** (redacted).
-4. Those credentials were used to move to **`WKSTN-1327`** over **WinRM**: on the target the malicious PowerShell had `wsmprovhost.exe` as its parent process, which is the PowerShell Remoting host.
+1. **Mimikatz** dumped credentials on `WKSTN-0051`. Download URL:
+   `https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20220919/mimikatz_trunk.zip`
+2. The NTLM hash of **`itadmin`** (redacted) was used for **pass-the-hash** (`sekurlsa::pth`).
+3. As `itadmin`, the attacker enumerated file shares and read **`IT_Automation.ps1`** from a remote share. The script held a plaintext domain credential: **`QUICKLOGISTICS\allan.smith`** (password redacted). Admin scripts with hard-coded passwords on a share are a classic finding.
+4. With `allan.smith` the attacker moved to **`WKSTN-1327`** over **WinRM**: on the target the malicious PowerShell had `wsmprovhost.exe` as its parent process, which is the PowerShell Remoting host.
 5. Persistence on the second host, as SYSTEM:
    ```
    schtasks.exe /Create /F /RU system /SC ONIDLE /I 2 /TN Updater /TR "...powershell.exe -NonI -W hidden -c ..."
    ```
-6. Another Mimikatz run on `WKSTN-1327` produced a more privileged hash (redacted), which led to the domain controller.
+6. Another Mimikatz run on `WKSTN-1327` produced the **`administrator`** hash (redacted), which led to the domain controller.
 
 ## 6. Domain compromise and impact
 
-- **DCSync** (`lsadump::dcsync`) from the domain controller: the attacker requested hashes for `administrator` and one more account. With those, the whole domain counts as compromised.
-- The last step was downloading a **ransomware** binary from an external URL.
+- **DCSync** (`lsadump::dcsync`) from the domain controller: the attacker requested hashes for `administrator` and **`backupda`**. With those, the whole domain counts as compromised.
+- The last step was downloading a **ransomware** binary: `http://ff.sillytechninja.io/ransomboogey.exe`.
 
 ## 7. KQL notes from this investigation
 
@@ -84,10 +88,13 @@ The compromised user was a local administrator, but tokens were still filtered b
 | Type | Indicator |
 |---|---|
 | Email | `allie.sierra@quicklogistics.org` (compromised internal mailbox) |
-| File | `ProjectFinancialSummary_Q3.pdf` (ISO), `ProjectFinancialSummary_Q3.pdf.hta`, `%TEMP%\review.dat` |
+| File | `ProjectFinancialSummary_Q3.pdf` (ISO), `ProjectFinancialSummary_Q3.pdf.hta`, `review.dat` (`D:\` and `%TEMP%`), `IT_Automation.ps1` (share) |
+| IP:port | `165.232.170.151:80` (C2) |
+| URL | `https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20220919/mimikatz_trunk.zip`, `http://ff.sillytechninja.io/ransomboogey.exe` |
 | Persistence | task `Review` (WKSTN-0051, daily 06:00); task `Updater` (WKSTN-1327, ONIDLE, SYSTEM) |
 | Hosts | `WKSTN-0051`, `WKSTN-1327`, domain controller |
-| Tools | Mimikatz (`sekurlsa::pth`, `lsadump::dcsync`) |
+| Accounts used / dumped | `itadmin`, `QUICKLOGISTICS\allan.smith`, `administrator`, `backupda` |
+| Tools | `fodhelper.exe` (UAC bypass), Mimikatz (`sekurlsa::pth`, `lsadump::dcsync`) |
 
 ## 9. ATT&CK mapping
 
@@ -105,15 +112,16 @@ The compromised user was a local administrator, but tokens were still filtered b
 
 **High-value detections**
 - `mshta.exe` started by `explorer.exe` with a path on a mounted drive (`D:\*.hta`).
-- `rundll32.exe` loading a non-DLL extension (`.dat`) from `%TEMP%`.
+- `xcopy.exe` / `rundll32.exe` with paths on a mounted ISO; `rundll32.exe` loading a non-DLL extension (`.dat`).
+- `fodhelper.exe` with a parent other than `explorer.exe`, or writes to `HKCU\Software\Classes\ms-settings\shell\open\command`.
 - Security 4698 / `Register-ScheduledTask` from a non-admin workflow.
 - `wsmprovhost.exe` spawning encoded PowerShell.
 - DCSync: replication rights (`DS-Replication-Get-Changes`) used by a non-DC account, Security 4662.
 
 **Response**
 - Treat it as a domain-wide incident: isolate `WKSTN-0051`, `WKSTN-1327` and review the DC.
-- Reset `krbtgt` **twice**, then every account whose hash was dumped; rotate the credential found on the share and remove it from there.
-- Remove both scheduled tasks and the implant; block the C2 and download hosts.
+- Reset `krbtgt` **twice**, then `administrator`, `backupda`, `itadmin` and `allan.smith`; remove the hard-coded password from `IT_Automation.ps1`.
+- Remove both scheduled tasks and the implant; block `165.232.170.151` and `sillytechninja.io`.
 - Block ISO/IMG attachments at the mail gateway; restrict WinRM to admin jump hosts.
 
 ---
